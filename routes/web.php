@@ -17,6 +17,15 @@ Route::get('/ready', function() {
     return 'OK';
 });
 
+Route::get('/health', function() {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        return response()->json(['status' => 'healthy'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'unhealthy', 'error' => $e->getMessage()], 503);
+    }
+});
+
 $params = [];
 $conf = ['prefix' => '', 'where' => []];
 
