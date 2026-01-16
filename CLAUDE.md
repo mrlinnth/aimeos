@@ -155,21 +155,26 @@ Local packages can be added to `/packages/*` directory. They are auto-discovered
 
 ### Dockerfile Architecture
 
-The repository uses a **multi-stage build** for optimized production images:
+The repository uses a **single-stage optimized build**:
 
-**Build Stage:**
-- Uses `composer:2` to install PHP dependencies
-- Runs `composer install --no-dev --optimize-autoloader` for production
-- No dev dependencies included in final image
-
-**Production Stage:**
 - Base: `php:8.2-fpm-alpine`
-- Installs: Nginx, Supervisor, MySQL client
-- PHP Extensions: pdo_mysql, gd, zip, intl, mbstring, bcmath, opcache
+- Installs: Nginx, Supervisor, MySQL client, PHP extensions
+- PHP Extensions: pdo_mysql, gd, zip, intl, mbstring, bcmath, opcache, redis
+- Copies Composer binary from official composer:2 image
+- Runs composer install with all extensions available (no platform requirement hacks)
+- Removes Composer after install to minimize image size (~2-3 MB savings)
 - Copies configuration from `/docker` directory (nginx, php, supervisor)
 - Document root: `/var/www/html/public`
 - Entrypoint: `/docker/start.sh`
 - Exposes port 80
+
+**Build Order:**
+1. Install system packages and PHP extensions
+2. Copy composer binary from composer:2 image
+3. Install PHP dependencies (extensions already available for validation)
+4. Copy application code
+5. Clean up composer binary
+6. Configure services and set permissions
 
 ### Docker Services
 
