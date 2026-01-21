@@ -66,7 +66,9 @@ npm run dev
 
 Access the application:
 - Frontend: http://127.0.0.1:8000
+![Frontend](/public/demo-store.png)
 - Admin: http://127.0.0.1:8000/admin
+![Admin](/public/demo-admin.png)
 - Health check: http://127.0.0.1:8000/health
 
 ### Recommended Local Dev Environment Tools
