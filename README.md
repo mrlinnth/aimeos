@@ -19,12 +19,12 @@ A production-ready Laravel 12 e-commerce application powered by Aimeos, packaged
 
 ## Requirements
 
-- Docker and Docker Compose
+- PHP 8.2+
 - MySQL 8.0
-- Redis 7
-- PHP 8.2+ (in container)
+- Redis 7 (optional)
+- Docker and Docker Compose (optional for local development)
 
-## Quick Start with Docker
+## Local Development
 
 ```bash
 # Clone the repository
@@ -37,23 +37,6 @@ cp .env.example .env
 # Edit .env with your database credentials
 # Set APP_KEY, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_ROOT_PASSWORD
 
-# Build and start containers
-docker-compose up -d
-
-# Run initial setup (first time only)
-docker exec <app-container> php artisan migrate --force
-docker exec <app-container> php artisan aimeos:setup
-docker exec <app-container> php artisan aimeos:account --super admin@example.com
-```
-
-Access the application:
-- Frontend: http://localhost
-- Admin: http://localhost/admin
-- Health check: http://localhost/health
-
-## Local Development
-
-```bash
 # Install dependencies
 composer install
 npm install
@@ -63,8 +46,17 @@ php artisan key:generate
 
 # Run migrations
 php artisan migrate
-php artisan aimeos:setup
 
+# Aimeos setup with demo data
+php artisan aimeos:setup --option=setup/default/demo:1
+
+# Create super admin user
+php artisan aimeos:account --super admin@example.com
+```
+
+## Local Server using default PHP
+
+```bash
 # Start development server
 php artisan serve
 
@@ -72,7 +64,17 @@ php artisan serve
 npm run dev
 ```
 
-Access at http://127.0.0.1:8000
+Access the application:
+- Frontend: http://127.0.0.1:8000
+- Admin: http://127.0.0.1:8000/admin
+- Health check: http://127.0.0.1:8000/health
+
+### Recommended Local Dev Environment Tools
+
+1. Laragon, WAMP (Windows)
+2. Laravel Valet, Herd Lite (Mac)
+3. Docker (Linux, Windows, Mac)
+4. Valet Linux Plus, Ddev (Linux)
 
 ## Configuration
 
@@ -104,6 +106,35 @@ APP_DEBUG=false
 CACHE_DRIVER=redis
 SESSION_DRIVER=redis
 ```
+
+## Quick Start with Docker
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd aimeos
+
+# Copy environment file
+cp .env.example .env
+
+# Edit .env with your database credentials
+# Set APP_KEY, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_ROOT_PASSWORD
+
+# Build and start containers
+docker-compose up -d
+
+# Run initial setup (first time only)
+docker exec <app-container> php artisan migrate --force
+docker exec <app-container> php artisan aimeos:setup
+# with demo data
+# docker exec <app-container> php artisan aimeos:setup --option=setup/default/demo:1
+docker exec <app-container> php artisan aimeos:account --super admin@example.com
+```
+
+Access the application:
+- Frontend: http://localhost
+- Admin: http://localhost/admin
+- Health check: http://localhost/health
 
 ## Deployment to Dokploy
 
