@@ -13,7 +13,17 @@ echo "Database is up - executing commands"
 # Run Laravel setup commands
 php artisan storage:link
 php artisan migrate --force
-php artisan optimize:clear
+
+# Publish vendor assets (Aimeos CSS/JS/images)
+php artisan vendor:publish --all --force
+
+# Setup Aimeos tables and initial data
+php artisan aimeos:setup
+
+# Cache optimization for production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 # Fix permissions for Laravel directories
 chown -R www-data:www-data /var/www/html
