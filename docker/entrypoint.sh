@@ -20,10 +20,17 @@ php artisan vendor:publish --all --force
 # Setup Aimeos tables and initial data
 php artisan aimeos:setup
 
-# Cache optimization for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Clear all caches (config, route, view, etc.)
+echo "Clearing all caches..."
+php artisan optimize:clear
+
+# Display configuration for debugging
+echo "=== Configuration Check ==="
+echo "APP_ENV: ${APP_ENV:-not set}"
+echo "APP_URL: ${APP_URL:-not set}"
+echo "SHOP_MULTILOCALE: ${SHOP_MULTILOCALE:-false}"
+echo "SHOP_MULTISHOP: ${SHOP_MULTISHOP:-false}"
+echo "==========================="
 
 # Fix permissions for Laravel directories
 chown -R www-data:www-data /var/www/html
