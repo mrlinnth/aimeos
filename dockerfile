@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 # Install system dependencies and build dependencies
 RUN apt-get update && apt-get install -y \
@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     supervisor \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure GD with jpeg and freetype support
@@ -36,6 +38,9 @@ COPY . .
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Install NPM dependencies and build assets
+RUN npm install && npm run build
 
 # Create required directories
 RUN mkdir -p /var/log/supervisor /run/php
