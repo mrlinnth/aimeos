@@ -40,6 +40,7 @@ if( env( 'SHOP_MULTISHOP' ) )
 {
     $conf['prefix'] .= '/{site}';
     $conf['where']['site'] = '[A-Za-z0-9\.\-]+';
+    $params['site'] = config('shop.mshop.locale.site', 'default');
 }
 
 if( $conf['prefix'] )
