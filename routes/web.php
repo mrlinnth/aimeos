@@ -17,6 +17,15 @@ Route::get('/ready', function() {
     return 'OK';
 });
 
+Route::get('/health', function() {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        return response()->json(['status' => 'healthy'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'unhealthy', 'error' => $e->getMessage()], 503);
+    }
+});
+
 $params = [];
 $conf = ['prefix' => '', 'where' => []];
 
@@ -31,6 +40,7 @@ if( env( 'SHOP_MULTISHOP' ) )
 {
     $conf['prefix'] .= '/{site}';
     $conf['where']['site'] = '[A-Za-z0-9\.\-]+';
+    $params['site'] = config('shop.mshop.locale.site', 'default');
 }
 
 if( $conf['prefix'] )

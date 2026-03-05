@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Middleware\TrustHosts as Middleware;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class TrustHosts extends Middleware
@@ -39,12 +38,9 @@ class TrustHosts extends Middleware
      */
     protected function trusted(Request $request)
     {
-        $domains = [$this->allSubdomainsOfApplicationUrl(), '10\.[0-9]+\.[0-9]+\.[0-9]+']; // private IPs for Kubernetes probe checks
-
-        if($domain = $request->host()) {
-            $domains[] = DB::table( 'mshop_locale_site' )->where('code', $domain)->first();
-        }
-
-        return $domains;
+        return [
+            $this->allSubdomainsOfApplicationUrl(),
+            '10\.[0-9]+\.[0-9]+\.[0-9]+' // private IPs for health checks
+        ];
     }
 }
