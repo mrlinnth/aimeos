@@ -4,7 +4,18 @@ set -e
 # Generate .env from Docker environment variables if missing
 if [ ! -f /var/www/html/.env ]; then
     echo "No .env file found - generating from environment variables..."
-    printenv | grep -v '^_=' | sort > /var/www/html/.env
+    while read -r line; do
+        key="${line%%=*}"
+        value="${line#*=}"
+        # Skip shell internals
+        case "$key" in _|SHLVL|PWD|OLDPWD|TERM|SHELL|USER|LOGNAME) continue ;; esac
+        # Quote values that contain spaces or tabs
+        if printf '%s' "$value" | grep -q '[[:space:]]'; then
+            printf '%s="%s"\n' "$key" "$value"
+        else
+            printf '%s=%s\n' "$key" "$value"
+        fi
+    done < <(printenv) | sort > /var/www/html/.env
     echo "Generated .env file"
 fi
 
