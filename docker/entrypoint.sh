@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Generate .env from Docker environment variables if missing
+if [ ! -f /var/www/html/.env ]; then
+    echo "No .env file found - generating from environment variables..."
+    printenv | grep -v '^_=' | sort > /var/www/html/.env
+    echo "Generated .env file"
+fi
+
 # Wait for database to be ready
 echo "Waiting for database..."
 until php artisan db:show 2>/dev/null; do
