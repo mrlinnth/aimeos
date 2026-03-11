@@ -1,0 +1,94 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      APP_NAME: Aimeos
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost}
+      SHOP_MULTILOCALE: ${SHOP_MULTILOCALE:-false}
+      SHOP_MULTISHOP: ${SHOP_MULTISHOP:-false}
+      SHOP_REGISTRATION: ${SHOP_REGISTRATION:-false}
+      SHOP_PERMISSION: ${SHOP_PERMISSION:-admin}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-aimeos}
+      DB_USERNAME: ${DB_USERNAME:-aimeos}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: sync
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
+      MAIL_HOST: ${MAIL_HOST:-smtp.mailtrap.io}
+      MAIL_PORT: ${MAIL_PORT:-2525}
+      MAIL_USERNAME: ${MAIL_USERNAME:-null}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-null}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-null}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-null}
+    volumes:
+      - storage:/var/www/html/storage
+      - aimeos_files:/var/www/html/public/aimeos
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aimeos
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-aimeos}
+      MYSQL_USER: ${DB_USERNAME:-aimeos}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - aimeos
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aimeos
+
+volumes:
+  storage:
+  aimeos_files:
+  mysql_data:
+  redis_data:
+
+networks:
+  aimeos:
+    driver: bridge
