@@ -5,7 +5,7 @@ services:
       dockerfile: dockerfile
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "80:8080"
     environment:
       APP_NAME: Aimeos
       APP_ENV: production
@@ -35,6 +35,11 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-null}
       MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-null}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-null}
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
+      AUTORUN_LARAVEL_MIGRATION: "true"
+      AUTORUN_LARAVEL_OPTIMIZE: "true"
+      HEALTHCHECK_PATH: /up
     volumes:
       - storage:/var/www/html/storage
       - aimeos_files:/var/www/html/public/aimeos
