@@ -1,65 +1,42 @@
-FROM php:8.4-fpm
+FROM serversideup/php:8.4-fpm-nginx
 
-# Install system dependencies and build dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libicu-dev \
-    libpng-dev \
-    libzip-dev \
-    libonig-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    nginx \
-    supervisor \
-    nodejs \
-    npm \
+USER root
+
+# Install Node.js 22 for asset building
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure GD with jpeg and freetype support
-RUN docker-php-ext-configure gd --with-jpeg --with-freetype
+# Install additional PHP extensions (not pre-installed in base)
+RUN install-php-extensions \
+    gd \
+    intl \
+    bcmath \
+    zip \
+    exif \
+    pcntl \
+    pdo_mysql \
+    redis
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd intl
-
-# Install Redis extension via PECL
-RUN pecl install redis && docker-php-ext-enable redis
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
 WORKDIR /var/www/html
 
+# Copy dependency files first for better layer caching
+COPY --chown=www-data:www-data composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
 # Copy application files
-COPY . .
+COPY --chown=www-data:www-data . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Run post-install scripts (generates autoload, runs package discovery)
+RUN composer run-script post-autoload-dump 2>/dev/null || true
 
-# Install NPM dependencies and build assets
-RUN npm install && npm run build
+# Build frontend assets and remove dev dependencies
+RUN npm install && npm run build && rm -rf node_modules
 
-# Create required directories
-RUN mkdir -p /var/log/supervisor /run/php
+# Copy custom startup scripts
+COPY --chown=root:root docker/entrypoint.d/ /etc/entrypoint.d/
+RUN chmod +x /etc/entrypoint.d/*.sh
 
-# Copy configurations
-COPY docker/nginx.conf /etc/nginx/sites-available/default
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/php-fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
-COPY docker/entrypoint.sh /entrypoint.sh
-
-# Make entrypoint executable
-RUN chmod +x /entrypoint.sh
-
-# Remove default nginx config and create symlink
-RUN rm -f /etc/nginx/sites-enabled/default && \
-    ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
-# Expose port
-EXPOSE 80
-
-# Use entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+USER www-data
