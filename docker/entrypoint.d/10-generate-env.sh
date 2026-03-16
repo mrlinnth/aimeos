@@ -30,4 +30,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 done < "$EXAMPLE_FILE" > "$ENV_FILE"
 
+# Generate a fresh APP_KEY and inject it
+APP_KEY="base64:$(openssl rand -base64 32)"
+sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /var/www/html/.env
+
 echo "Generated .env file"

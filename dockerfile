@@ -32,10 +32,6 @@ COPY --chown=www-data:www-data . .
 # Pre-create .env so it always exists before entrypoint scripts run
 RUN cp .env.example .env && chown www-data:www-data .env
 
-# Generate a fresh APP_KEY and inject it
-APP_KEY="base64:$(openssl rand -base64 32)"
-sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
-
 # Run post-install scripts (generates autoload, runs package discovery)
 RUN composer run-script post-autoload-dump 2>/dev/null || true
 
