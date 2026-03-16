@@ -29,6 +29,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Copy application files
 COPY --chown=www-data:www-data . .
 
+# Pre-create .env so it always exists before entrypoint scripts run
+RUN cp .env.example .env
+
 # Run post-install scripts (generates autoload, runs package discovery)
 RUN composer run-script post-autoload-dump 2>/dev/null || true
 
